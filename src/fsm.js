@@ -40,7 +40,9 @@ class FSM {
     /**
      * Resets FSM state to initial.
      */
-    reset() {}
+    reset() {
+        this.state = this.config.initial;
+    }
 
     /**
      * Returns an array of states for which there are specified event transition rules.
@@ -48,7 +50,23 @@ class FSM {
      * @param event
      * @returns {Array}
      */
-    getStates(event) {}
+    getStates(event) {
+        let statesArr = [];
+        
+        if (event) {
+            for (const key in this.config.states) {
+                if (this.config.states[key].transitions[event]) {
+                    statesArr.push(key);
+                }
+            }
+        } else {
+            for (const key in this.config.states) {
+                statesArr.push(key);
+            }
+        }
+
+        return statesArr;
+    }
 
     /**
      * Goes back to previous state.
@@ -102,10 +120,6 @@ const config = {
     }
 };
 
-/*const student = new FSM(config);
+const student = new FSM(config);
 
-//console.log(student.getState());
-
-console.log(student.changeState('11hungry'));
-
-//console.log(student.getState());*/
+console.log(student.getStates('study'));
