@@ -6,7 +6,9 @@ class FSM {
     constructor(config) {
         this.config = config;
 
-        this.state = this.config.initial;
+        this.state = [];
+        this.count = 0;
+        this.state.push(this.config.initial);
     }
 
     /**
@@ -14,7 +16,7 @@ class FSM {
      * @returns {String}
      */
     getState() {
-        return this.state;
+        return this.state[this.count];
     }
 
     /**
@@ -24,7 +26,8 @@ class FSM {
     changeState(state) {
         if (!this.config.states[state]) throw new Error('the state is not set');
 
-        this.state = state;
+        this.count++;
+        this.state.splice(this.count, 1, state);
     }
 
     /**
@@ -32,16 +35,20 @@ class FSM {
      * @param event
      */
     trigger(event) {
+
         if (!this.config.states[this.getState()].transitions[event]) throw new Error('the state is not set');
 
-        this.state = this.config.states[this.getState()].transitions[event];
+        let state = this.config.states[this.getState()].transitions[event];
+        this.count++;
+        this.state.splice(this.count, 1, state);
     }
 
     /**
      * Resets FSM state to initial.
      */
     reset() {
-        this.state = this.config.initial;
+        this.count++;
+        this.state.splice(this.count, 1, this.config.initial);
     }
 
     /**
@@ -73,53 +80,35 @@ class FSM {
      * Returns false if undo is not available.
      * @returns {Boolean}
      */
-    undo() {}
+    undo() {
+        if ((this.count - 1) < 0) return false;
+
+        this.count--;
+        return true;
+    }
 
     /**
      * Goes redo to state.
      * Returns false if redo is not available.
      * @returns {Boolean}
      */
-    redo() {}
+    redo() {
+        if ((this.count + 1) >= this.state.length) return false;
+
+        this.count++;
+        return true;
+    }
 
     /**
      * Clears transition history
      */
-    clearHistory() {}
+    clearHistory() {
+        this.state = [];
+        this.count = 0;
+        this.state.push(this.config.initial);
+    }
 }
 
 module.exports = FSM;
 
 /** @Created by Uladzimir Halushka **/
-
-const config = {
-    initial: 'normal',
-    states: {
-        normal: {
-            transitions: {
-                study: 'busy',
-            }
-        },
-        busy: {
-            transitions: {
-                get_tired: 'sleeping',
-                get_hungry: 'hungry',
-            }
-        },
-        hungry: {
-            transitions: {
-                eat: 'normal'
-            },
-        },
-        sleeping: {
-            transitions: {
-                get_hungry: 'hungry',
-                get_up: 'normal',
-            },
-        },
-    }
-};
-
-const student = new FSM(config);
-
-console.log(student.getStates('study'));
